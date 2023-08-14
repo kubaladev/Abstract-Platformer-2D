@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public abstract class Enemy : MonoBehaviour
+public abstract class Enemy : MonoBehaviour, IDamageable
 {
     public static event Action<int> OnEnemyKilled;
-    [field: SerializeField] public int Health { get; private set; }
-    [field: SerializeField] public int Score { get; private set; }
+    [field: SerializeField] public int Health { get; private set; } = 1;
+    [field: SerializeField] public int Score { get; private set; } = 3;
     public virtual void TakeDamage(int damage)
     {
         Health -= damage;

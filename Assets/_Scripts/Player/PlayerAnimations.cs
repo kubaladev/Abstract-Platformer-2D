@@ -52,7 +52,7 @@ public class PlayerAnimations : MonoBehaviour
         {
             _horizontalState = HorizontalState.Jumping;
         }
-        else if (_rigidbody2D.velocity.y < -8f)
+        else if (_rigidbody2D.velocity.y < -7f)
         {
             _horizontalState = HorizontalState.Falling;
         }

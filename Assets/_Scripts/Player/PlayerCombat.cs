@@ -5,14 +5,52 @@ using UnityEngine;
 public class PlayerCombat : MonoBehaviour
 {
     [SerializeField] int _health = 3;
-    void Start()
+    [SerializeField] int _jumpDamage = 1;
+    [SerializeField] float _bouncePower = 6;
+    Rigidbody2D _rigidbody2D;
+
+    private void Awake()
     {
-        
+        _rigidbody2D = GetComponent<Rigidbody2D>();
+    }
+    void ResolveJumpOnEnemy(IKillableByJump enemy, Transform enemyTransform)
+    {
+        if (enemyTransform.position.y < transform.position.y && _rigidbody2D.velocity.y < 0)
+        {
+            enemy.TakeHitFromJump(_jumpDamage);
+            Bounce();
+        }
+        else
+        {
+            LoseLife();
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    void Bounce()
     {
-        
+        _rigidbody2D.velocity = new Vector3(_rigidbody2D.velocity.x, _bouncePower);
+    }
+    void LoseLife()
+    {
+        _health -= 1;
+        if (_health <= 0)
+        {
+            Die();
+        }
+    }
+    void Die()
+    {
+        Destroy(this.gameObject);
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            IKillableByJump iKillableByJump = collision.GetComponent<IKillableByJump>();
+            if (iKillableByJump != null)
+            {
+                ResolveJumpOnEnemy(iKillableByJump, collision.transform);
+            }
+        }
     }
 }

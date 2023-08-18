@@ -9,6 +9,7 @@ public class ScoreManager : MonoBehaviour
     private void Start()
     {
         Enemy.OnEnemyKilled += UpdateScore;
+        Gem.OnGemCollected += UpdateScore;
     }
     void UpdateScore(int gainedScore)
     {

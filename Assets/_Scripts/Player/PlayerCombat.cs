@@ -47,10 +47,15 @@ public class PlayerCombat : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             IKillableByJump iKillableByJump = collision.GetComponent<IKillableByJump>();
-            if (iKillableByJump != null)
-            {
-                ResolveJumpOnEnemy(iKillableByJump, collision.transform);
-            }
+            if (iKillableByJump == null) return;
+            ResolveJumpOnEnemy(iKillableByJump, collision.transform);
+            
+        }
+        else if (collision.gameObject.CompareTag("Collectible"))
+        {
+            ICollectible iCollectible = collision.GetComponent<ICollectible>();
+            if (iCollectible == null) return;
+            iCollectible.Collect();
         }
     }
 }

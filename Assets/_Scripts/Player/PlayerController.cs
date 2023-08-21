@@ -56,7 +56,7 @@ public class PlayerController : MonoBehaviour
         {
             float jumpTime = Mathf.Clamp(_jumpLenghtTimer, 0.01f, 0.2f);
             float jumpPower = _jumpForce * 0.5f + _jumpForce * jumpTime * 0.5f/0.2f;
-            Debug.Log($"Jump time {jumpTime}  Jump Power {jumpPower}");
+            //Debug.Log($"Jump time {jumpTime}  Jump Power {jumpPower}");
             rb.velocity = new Vector2(rb.velocity.x, jumpPower);
             _jumpScheduled = false;
             _jumpLenghtTimer = 0;

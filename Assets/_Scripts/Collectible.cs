@@ -25,7 +25,6 @@ public class Collectible : MonoBehaviour, ICollectible
     private void Start()
     {
         Invoke("SetupSequence", _offset);
-        Debug.Log(_offset);
     }
     void SetupSequence()
     {

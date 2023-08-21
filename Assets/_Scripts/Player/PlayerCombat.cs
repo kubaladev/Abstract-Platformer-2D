@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class PlayerCombat : MonoBehaviour
 {
@@ -8,10 +10,13 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField] int _jumpDamage = 1;
     [SerializeField] float _bouncePower = 6;
     Rigidbody2D _rigidbody2D;
-
+    SpriteRenderer _spriteRenderer;
+    public static event Action OnPlayerKilled;
+    bool _canTakeDamage = true;
     private void Awake()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
     }
     void ResolveJumpOnEnemy(IKillableByJump enemy, Transform enemyTransform)
     {
@@ -32,14 +37,20 @@ public class PlayerCombat : MonoBehaviour
     }
     void LoseLife()
     {
+        if (!_canTakeDamage) return;
         _health -= 1;
         if (_health <= 0)
         {
             Die();
         }
+        else
+        {
+            BecomeInvurnerable();
+        }
     }
     void Die()
     {
+        OnPlayerKilled?.Invoke();
         Destroy(this.gameObject);
     }
     private void OnTriggerEnter2D(Collider2D collision)
@@ -49,7 +60,6 @@ public class PlayerCombat : MonoBehaviour
             IKillableByJump iKillableByJump = collision.GetComponent<IKillableByJump>();
             if (iKillableByJump == null) return;
             ResolveJumpOnEnemy(iKillableByJump, collision.transform);
-            
         }
         else if (collision.gameObject.CompareTag("Collectible"))
         {
@@ -57,5 +67,21 @@ public class PlayerCombat : MonoBehaviour
             if (iCollectible == null) return;
             iCollectible.Collect();
         }
+        else if (collision.gameObject.CompareTag("Void"))
+        {
+            Die();
+        }
+    }
+    void BecomeInvurnerable()
+    {
+        _canTakeDamage = false;
+        Sequence mySequence = DOTween.Sequence();
+        for(int i=0; i < 5; i++)
+        {
+            mySequence.Append(_spriteRenderer.DOFade(0, 0.25f));
+            mySequence.Append(_spriteRenderer.DOFade(1, 0.25f));
+        }
+        mySequence.OnComplete(() => { _canTakeDamage = true; mySequence.Kill(); });
+        mySequence.Play();
     }
 }

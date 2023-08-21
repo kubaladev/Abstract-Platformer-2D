@@ -15,4 +15,8 @@ public class LevelManager : MonoBehaviour
     {
         _endPanel.DOFade(1, 1f).OnComplete( () => { DOTween.KillAll(); SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); });
     }
+    private void OnDestroy()
+    {
+        PlayerCombat.OnPlayerKilled -= LevelFailed;
+    }
 }

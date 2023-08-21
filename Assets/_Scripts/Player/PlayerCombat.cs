@@ -12,11 +12,16 @@ public class PlayerCombat : MonoBehaviour
     Rigidbody2D _rigidbody2D;
     SpriteRenderer _spriteRenderer;
     public static event Action OnPlayerKilled;
+    public static event Action<int> OnPlayerLifeChanged;
     bool _canTakeDamage = true;
     private void Awake()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+    private void Start()
+    {
+        StartCoroutine(UpdateStartingIndicators());
     }
     void ResolveJumpOnEnemy(IKillableByJump enemy, Transform enemyTransform)
     {
@@ -30,7 +35,6 @@ public class PlayerCombat : MonoBehaviour
             LoseLife();
         }
     }
-
     void Bounce()
     {
         _rigidbody2D.velocity = new Vector3(_rigidbody2D.velocity.x, _bouncePower);
@@ -39,6 +43,7 @@ public class PlayerCombat : MonoBehaviour
     {
         if (!_canTakeDamage) return;
         _health -= 1;
+        OnPlayerLifeChanged?.Invoke(_health);
         if (_health <= 0)
         {
             Die();
@@ -47,7 +52,9 @@ public class PlayerCombat : MonoBehaviour
         {
             BecomeInvurnerable();
         }
+
     }
+
     void Die()
     {
         OnPlayerKilled?.Invoke();
@@ -71,6 +78,10 @@ public class PlayerCombat : MonoBehaviour
         {
             Die();
         }
+        else if (collision.gameObject.CompareTag("Trap"))
+        {
+            LoseLife();
+        }
     }
     void BecomeInvurnerable()
     {
@@ -83,5 +94,10 @@ public class PlayerCombat : MonoBehaviour
         }
         mySequence.OnComplete(() => { _canTakeDamage = true; mySequence.Kill(); });
         mySequence.Play();
+    }
+    IEnumerator UpdateStartingIndicators()
+    {
+        yield return new WaitForFixedUpdate();
+        OnPlayerLifeChanged?.Invoke(_health);
     }
 }

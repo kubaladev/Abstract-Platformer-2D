@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
@@ -22,23 +23,21 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
         _iGroundCheck = _feet.GetComponent<IGroundCheck>();
     }
 
-    void Update()
+    public void HandleMovementInput(InputAction.CallbackContext callbackContext)
     {
-        // Basic left and right movement
-        _xInput = Input.GetAxis("Horizontal");
-        HandleJumpInput();
+        _xInput = callbackContext.ReadValue<float>();
     }
-    void HandleJumpInput()
+    public void HandleJumpInput(InputAction.CallbackContext callbackContext)
     {
         if (!_iGroundCheck.IsOnGround()) return;
-        if (Input.GetButton("Jump"))
+        if (callbackContext.started)
         {
-            _jumpLenghtTimer += Time.deltaTime;
+            _jumpLenghtTimer = Time.time;
         }
-
-        if ((Input.GetButtonUp("Jump") || _jumpLenghtTimer >= 0.2f))
+        if (callbackContext.canceled || callbackContext.performed)
         {
             _jumpScheduled = true;
+            _jumpLenghtTimer = Time.time- _jumpLenghtTimer;
         }
     }
     private void FixedUpdate()

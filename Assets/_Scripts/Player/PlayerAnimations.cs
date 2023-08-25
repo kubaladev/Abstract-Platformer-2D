@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerAnimations : MonoBehaviour
 {
@@ -24,12 +25,12 @@ public class PlayerAnimations : MonoBehaviour
     }
     private void Update()
     {
-        HandleVerticalState();
         HandleHorizontalState();
     }
-    void HandleVerticalState()
+    public void HandleVerticalState(InputAction.CallbackContext callbackContext)
     {
-        if (Mathf.Abs(_rigidbody2D.velocity.x) > 0.05f)
+        float xInput = callbackContext.ReadValue<float>();
+        if (Mathf.Abs(xInput) > 0.05f)
         {
             _animator.SetBool("isMoving", true);
         }
@@ -37,11 +38,11 @@ public class PlayerAnimations : MonoBehaviour
         {
             _animator.SetBool("isMoving", false);
         }
-        if (_rigidbody2D.velocity.x < -0.05f)
+        if (xInput < -0.05f)
         {
             _spriteRenderer.flipX = true;
         }
-        else if(_rigidbody2D.velocity.x>0.05f)
+        else if(xInput>0.05f)
         {
             _spriteRenderer.flipX = false;
         }

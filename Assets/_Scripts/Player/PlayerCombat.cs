@@ -14,10 +14,12 @@ public class PlayerCombat : MonoBehaviour
     public static event Action OnPlayerKilled;
     public static event Action<int> OnPlayerLifeChanged;
     bool _canTakeDamage = true;
+    IAcceptsOutsideForces playerPhysics;
     private void Awake()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
+        playerPhysics = GetComponent<IAcceptsOutsideForces>();
     }
     private void Start()
     {
@@ -37,7 +39,7 @@ public class PlayerCombat : MonoBehaviour
     }
     void Bounce()
     {
-        _rigidbody2D.velocity = new Vector3(_rigidbody2D.velocity.x, _bouncePower);
+        playerPhysics.ApplyImmediateForce(new Vector3(0, _bouncePower),true);
     }
     void LoseLife()
     {

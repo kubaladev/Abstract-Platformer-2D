@@ -23,6 +23,10 @@ public class PlayerAnimations : MonoBehaviour
         _iGorundCheck = GetComponentInChildren<IGroundCheck>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
     }
+    private void Start()
+    {
+        PlayerController.OnJumpPerformed += Jump;
+    }
     private void Update()
     {
         HandleHorizontalState();
@@ -47,11 +51,15 @@ public class PlayerAnimations : MonoBehaviour
             _spriteRenderer.flipX = false;
         }
     }
+    void Jump()
+    {
+        _horizontalState = HorizontalState.Jumping;
+    }
     void HandleHorizontalState()
     {
         if (_rigidbody2D.velocity.y > 0.1f)
         {
-            _horizontalState = HorizontalState.Jumping;
+            Debug.Log("Jumping");
         }
         else if (_rigidbody2D.velocity.y < -7f)
         {
@@ -66,6 +74,10 @@ public class PlayerAnimations : MonoBehaviour
     void SetHorizontalAnimation()
     {
         _animator.SetInteger("horizontalState", (int)_horizontalState);
+    }
+    private void OnDestroy()
+    {
+        PlayerController.OnJumpPerformed -= Jump;
     }
 
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
@@ -10,6 +11,7 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     [SerializeField] float _jumpForce = 5f;
     [SerializeField] float _maxFallSpeed = 7f;
     [SerializeField] GameObject _feet;
+    [SerializeField] float _gravity = 9.81f;
     IGroundCheck _iGroundCheck;
     Vector2 _outsideContiniousForce;
     List<Rigidbody2D> _followedObjects=new List<Rigidbody2D>();
@@ -17,6 +19,9 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     float _xInput;
     bool _jumpScheduled = false;
     float _jumpLenghtTimer = 0;
+    float _yVelocity =0;
+    public static event Action OnJumpPerformed;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -30,11 +35,11 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     public void HandleJumpInput(InputAction.CallbackContext callbackContext)
     {
         if (!_iGroundCheck.IsOnGround()) return;
-        if (callbackContext.started)
+        else if (callbackContext.started)
         {
             _jumpLenghtTimer = Time.time;
         }
-        if (callbackContext.canceled || callbackContext.performed)
+        else if (callbackContext.canceled || callbackContext.performed)
         {
             _jumpScheduled = true;
             _jumpLenghtTimer = Time.time- _jumpLenghtTimer;
@@ -42,28 +47,37 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     }
     private void FixedUpdate()
     {
-        // Clamp fall speed
-        // Check if the player is grounded
-        bool isOnGround = _iGroundCheck.IsOnGround();
-        float yVelocity = Mathf.Clamp(rb.velocity.y, -_maxFallSpeed,100);
+
+
         Vector2 totalOutsideVelocity = _outsideContiniousForce;
-        foreach(Rigidbody2D rb in _followedObjects)
+        foreach (Rigidbody2D rb in _followedObjects)
         {
             totalOutsideVelocity += rb.velocity;
         }
-        rb.velocity = new Vector2(_xInput * _moveSpeed + totalOutsideVelocity.x, yVelocity+ totalOutsideVelocity.y);
 
+        //Gravity
+        bool isOnGround = _iGroundCheck.IsOnGround();
+        if (isOnGround && _yVelocity < 0)
+        {
+            _yVelocity = 0;
+        }
+        else 
+        {
+            _yVelocity -= _gravity * Time.fixedDeltaTime;
+        }
 
         // Jump
         if (isOnGround && _jumpScheduled)
         {
             float jumpTime = Mathf.Clamp(_jumpLenghtTimer, 0.01f, 0.2f);
-            float jumpPower = _jumpForce * 0.5f + _jumpForce * jumpTime * 0.5f/0.2f;
-            //Debug.Log($"Jump time {jumpTime}  Jump Power {jumpPower}");
-            rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+            if (_yVelocity < 0) _yVelocity = 0;
+            _yVelocity += _jumpForce * 0.5f + _jumpForce * jumpTime * 0.5f/0.2f;
             _jumpScheduled = false;
             _jumpLenghtTimer = 0;
+            OnJumpPerformed?.Invoke();
         }
+        float clampedYVelocity = Mathf.Clamp(_yVelocity + totalOutsideVelocity.y, -_maxFallSpeed, 100);
+        rb.velocity = new Vector2(_xInput * _moveSpeed + totalOutsideVelocity.x, clampedYVelocity);
     }
 
     public void SetContinoiusForce(Vector2 force)
@@ -76,9 +90,10 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
         _outsideContiniousForce -= force;
     }
 
-    public void ApplyImmediateForce(Vector2 force)
+    public void ApplyImmediateForce(Vector2 force,bool resetsVelocity)
     {
-        rb.velocity += force;
+        if (resetsVelocity) _yVelocity = 0;
+        _yVelocity += force.y;
     }
 
     public void FollowObject(Rigidbody2D followedRB)

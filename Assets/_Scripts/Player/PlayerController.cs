@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     [SerializeField] float _maxFallSpeed = 7f;
     [SerializeField] GameObject _feet;
     [SerializeField] float _gravity = 9.81f;
+    [SerializeField] float _jumpMaxCooldown;
     IGroundCheck _iGroundCheck;
     Vector2 _outsideContiniousForce;
     List<Rigidbody2D> _followedObjects=new List<Rigidbody2D>();
@@ -20,6 +21,7 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     bool _jumpScheduled = false;
     float _jumpLenghtTimer = 0;
     float _yVelocity =0;
+    float _jumpCooldown;
     public static event Action OnJumpPerformed;
 
     void Awake()
@@ -47,8 +49,6 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     }
     private void FixedUpdate()
     {
-
-
         Vector2 totalOutsideVelocity = _outsideContiniousForce;
         foreach (Rigidbody2D rb in _followedObjects)
         {
@@ -69,17 +69,21 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
         // Jump
         if (isOnGround && _jumpScheduled)
         {
-            float jumpTime = Mathf.Clamp(_jumpLenghtTimer, 0.01f, 0.2f);
-            if (_yVelocity < 0) _yVelocity = 0;
-            _yVelocity += _jumpForce * 0.5f + _jumpForce * jumpTime * 0.5f/0.2f;
-            _jumpScheduled = false;
-            _jumpLenghtTimer = 0;
-            OnJumpPerformed?.Invoke();
+            Jump();
         }
         float clampedYVelocity = Mathf.Clamp(_yVelocity + totalOutsideVelocity.y, -_maxFallSpeed, 100);
         rb.velocity = new Vector2(_xInput * _moveSpeed + totalOutsideVelocity.x, clampedYVelocity);
     }
 
+    void Jump()
+    {
+        float jumpTime = Mathf.Clamp(_jumpLenghtTimer, 0.01f, 0.2f);
+        if (_yVelocity < 0) _yVelocity = 0;
+        _yVelocity += _jumpForce * 0.5f + _jumpForce * jumpTime * 0.5f / 0.2f;
+        _jumpScheduled = false;
+        _jumpLenghtTimer = 0;
+        OnJumpPerformed?.Invoke();
+    }
     public void SetContinoiusForce(Vector2 force)
     {
         _outsideContiniousForce += force;

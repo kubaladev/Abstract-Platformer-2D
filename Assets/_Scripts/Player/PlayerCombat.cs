@@ -13,13 +13,14 @@ public class PlayerCombat : MonoBehaviour
     SpriteRenderer _spriteRenderer;
     public static event Action OnPlayerKilled;
     public static event Action<int> OnPlayerLifeChanged;
-    bool _canTakeDamage = true;
+    int _canTakeDamage = 0;
     IAcceptsOutsideForces playerPhysics;
     private void Awake()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         playerPhysics = GetComponent<IAcceptsOutsideForces>();
+        PlayerController.OnDashPerformed += DashingDodge;
     }
     private void Start()
     {
@@ -43,7 +44,7 @@ public class PlayerCombat : MonoBehaviour
     }
     void LoseLife()
     {
-        if (!_canTakeDamage) return;
+        if (_canTakeDamage>0) return;
         _health -= 1;
         OnPlayerLifeChanged?.Invoke(_health);
         if (_health <= 0)
@@ -60,6 +61,7 @@ public class PlayerCombat : MonoBehaviour
     void Die()
     {
         OnPlayerKilled?.Invoke();
+        _spriteRenderer.DOKill();
         Destroy(this.gameObject);
     }
     private void OnTriggerEnter2D(Collider2D collision)
@@ -67,8 +69,14 @@ public class PlayerCombat : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             IKillableByJump iKillableByJump = collision.GetComponent<IKillableByJump>();
-            if (iKillableByJump == null) return;
-            ResolveJumpOnEnemy(iKillableByJump, collision.transform);
+            if (iKillableByJump != null)
+            {
+                ResolveJumpOnEnemy(iKillableByJump, collision.transform);
+            }
+            else
+            {
+                LoseLife();
+            }
         }
         else if (collision.gameObject.CompareTag("Collectible"))
         {
@@ -87,19 +95,43 @@ public class PlayerCombat : MonoBehaviour
     }
     void BecomeInvurnerable()
     {
-        _canTakeDamage = false;
+        _canTakeDamage ++;
         Sequence mySequence = DOTween.Sequence();
         for(int i=0; i < 5; i++)
         {
             mySequence.Append(_spriteRenderer.DOFade(0, 0.25f));
             mySequence.Append(_spriteRenderer.DOFade(1, 0.25f));
         }
-        mySequence.OnComplete(() => { _canTakeDamage = true; mySequence.Kill(); });
+        mySequence.OnComplete(() => { _canTakeDamage --; mySequence.Kill(); });
         mySequence.Play();
+    }
+    void DashingDodge(float duration)
+    {
+
+        StartCoroutine(Dashing(duration));
+    }
+    IEnumerator Dashing(float duration)
+    {
+        _canTakeDamage++;
+        if (_canTakeDamage == 1)
+        {
+            _spriteRenderer.DOFade(0.7f, 0f);
+        }
+        yield return new WaitForSeconds(duration);
+        if (_canTakeDamage == 1)
+        {
+            _spriteRenderer.DOFade(1f, 0f);
+        }
+        yield return new WaitForSeconds(0.1f);
+        _canTakeDamage--;
     }
     IEnumerator UpdateStartingIndicators()
     {
         yield return new WaitForFixedUpdate();
         OnPlayerLifeChanged?.Invoke(_health);
+    }
+    private void OnDestroy()
+    {
+        PlayerController.OnDashPerformed -= DashingDodge;
     }
 }

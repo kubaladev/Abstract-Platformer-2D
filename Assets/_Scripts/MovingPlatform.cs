@@ -52,4 +52,9 @@ public class MovingPlatform : MonoBehaviour
             touchingPlayer.UnFollowObject(_rigidbody2D);
         }
     }
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawRay(transform.position, _moveInterval * _speed);
+    }
 }

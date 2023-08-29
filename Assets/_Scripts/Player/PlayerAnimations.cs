@@ -11,6 +11,7 @@ public class PlayerAnimations : MonoBehaviour
         Jumping = 1,
         Falling = -1
     }
+    TrailRenderer _trailRenderer;
     HorizontalState _horizontalState;
     Animator _animator;
     Rigidbody2D _rigidbody2D;
@@ -22,10 +23,12 @@ public class PlayerAnimations : MonoBehaviour
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _iGorundCheck = GetComponentInChildren<IGroundCheck>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
+        _trailRenderer = GetComponent<TrailRenderer>();
     }
     private void Start()
     {
         PlayerController.OnJumpPerformed += Jump;
+        PlayerController.OnDashPerformed += Dash;
     }
     private void Update()
     {
@@ -59,7 +62,7 @@ public class PlayerAnimations : MonoBehaviour
     {
         if (_rigidbody2D.velocity.y > 0.1f)
         {
-            Debug.Log("Jumping");
+
         }
         else if (_rigidbody2D.velocity.y < -7f)
         {
@@ -71,13 +74,28 @@ public class PlayerAnimations : MonoBehaviour
         }
         SetHorizontalAnimation();
     }
+
     void SetHorizontalAnimation()
     {
         _animator.SetInteger("horizontalState", (int)_horizontalState);
     }
+    void Dash(float duration)
+    {
+        StartCoroutine(DashingTrail(duration));
+    }
+    IEnumerator DashingTrail(float duration)
+    {
+        _trailRenderer.emitting = true;
+        yield return new WaitForSeconds(duration);
+        _trailRenderer.emitting = false;
+
+    }
+
     private void OnDestroy()
     {
         PlayerController.OnJumpPerformed -= Jump;
+        PlayerController.OnDashPerformed -= Dash;
+        
     }
 
 }

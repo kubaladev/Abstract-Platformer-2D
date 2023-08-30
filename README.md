@@ -10,5 +10,5 @@ Game mechanics:
 * moving platform
 * finish flag
 * collectible gems <br> <br>
-Graphics by https://www.kenney.nl/assets
-![alt text](https://github.com/kubaladev/Abstract-Platformer-2D/blob/main/showcase.PNG?raw=true)
+Graphics by https://www.kenney.nl/assets<br>
+![showcase](https://github.com/kubaladev/Abstract-Platformer-2D/blob/main/showcase.gif?raw=true)

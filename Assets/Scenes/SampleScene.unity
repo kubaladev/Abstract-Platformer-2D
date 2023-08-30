@@ -9093,6 +9093,7 @@ GameObject:
   - component: {fileID: 1353980432}
   - component: {fileID: 1353980434}
   - component: {fileID: 1353980435}
+  - component: {fileID: 1353980436}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -9223,9 +9224,6 @@ MonoBehaviour:
   _feet: {fileID: 462211436}
   _gravity: 9.81
   _jumpMaxCooldown: 0
-  _dashSpeed: 7.5
-  _dashDuration: 0.32
-  _dashCooldown: 1
   _minJumpCooldown: 0.2
 --- !u!114 &1353980431
 MonoBehaviour:
@@ -9345,8 +9343,8 @@ MonoBehaviour:
     m_ActionName: Player/Movement[/Keyboard/leftArrow,/Keyboard/rightArrow,/Keyboard/a,/Keyboard/d]
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1353980430}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 1353980436}
+        m_TargetAssemblyTypeName: PlayerDash, Assembly-CSharp
         m_MethodName: HandleDashInput
         m_Mode: 0
         m_Arguments:
@@ -9361,8 +9359,8 @@ MonoBehaviour:
     m_ActionName: Player/Dash[/Keyboard/x,/Keyboard/shift]
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1353980430}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 1353980436}
+        m_TargetAssemblyTypeName: PlayerDash, Assembly-CSharp
         m_MethodName: HadleDashDirection
         m_Mode: 0
         m_Arguments:
@@ -9488,6 +9486,21 @@ TrailRenderer:
   m_MinVertexDistance: 0.1
   m_Autodestruct: 0
   m_Emitting: 0
+--- !u!114 &1353980436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1353980425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cababc009137041479f96ffaf59dfa17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _dashSpeed: 8
+  _dashDuration: 0.28
+  _dashCooldown: 1
 --- !u!1001 &1359399402
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10007,7 +10020,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 25, y: -19.9}
+  m_AnchoredPosition: {x: 25, y: -19.900024}
   m_SizeDelta: {x: 27.4228, y: 27.4228}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1514886534

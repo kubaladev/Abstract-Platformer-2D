@@ -20,7 +20,7 @@ public class PlayerCombat : MonoBehaviour
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         playerPhysics = GetComponent<IAcceptsOutsideForces>();
-        PlayerController.OnDashPerformed += DashingDodge;
+        PlayerDash.OnDashPerformed += DashingDodge;
     }
     private void Start()
     {
@@ -40,7 +40,8 @@ public class PlayerCombat : MonoBehaviour
     }
     void Bounce()
     {
-        playerPhysics.ApplyImmediateForce(new Vector3(0, _bouncePower),true);
+        playerPhysics.ResetVelocity(false, true);
+        playerPhysics.ApplyImmediateForce(new Vector3(0, _bouncePower));
     }
     void LoseLife()
     {
@@ -132,6 +133,6 @@ public class PlayerCombat : MonoBehaviour
     }
     private void OnDestroy()
     {
-        PlayerController.OnDashPerformed -= DashingDodge;
+        PlayerDash.OnDashPerformed -= DashingDodge;
     }
 }

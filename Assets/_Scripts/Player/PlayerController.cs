@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using System;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
+public class PlayerController : MonoBehaviour, IAcceptsOutsideForces, IGravityControl
 {
     [SerializeField] float _moveSpeed = 5f;
     [SerializeField] float _jumpForce = 5f;
@@ -13,32 +13,24 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     [SerializeField] GameObject _feet;
     [SerializeField] float _gravity = 9.81f;
     [SerializeField] float _jumpMaxCooldown;
-    [SerializeField] float _dashSpeed = 10f;
-    [SerializeField] float _dashDuration = 0.2f;
-    [SerializeField] float _dashCooldown = 2f;
     [SerializeField] float _minJumpCooldown = 0.2f;
-    float _currentDashCooldown = 0f;
     IGroundCheck _iGroundCheck;
     Vector2 _outsideContiniousForce;
     List<Rigidbody2D> _followedObjects=new List<Rigidbody2D>();
     Rigidbody2D _rigidBody2D;
-    SpriteRenderer _spriteRenderer;
     float _xInput;
     bool _jumpScheduled = false;
-    bool _dashScheduled = false;
-    bool _isDashing = false;
     float _jumpLenghtTimer = 0;
     float _yVelocity =0;
+    float _xVelocity = 0;
     float _jumpCooldown;
-    Vector2 _dashDirection;
+    bool _gravityAcitvated = true;
     public static event Action OnJumpPerformed;
-    public static event Action<float> OnDashPerformed;
 
     void Awake()
     {
         _rigidBody2D = GetComponent<Rigidbody2D>();
         _iGroundCheck = _feet.GetComponent<IGroundCheck>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     public void HandleMovementInput(InputAction.CallbackContext callbackContext)
@@ -58,28 +50,9 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
             _jumpLenghtTimer = Time.time- _jumpLenghtTimer;
         }
     }
-    public void HandleDashInput(InputAction.CallbackContext callbackContext)
-    {
-        if (callbackContext.started)
-        {
-            if(_currentDashCooldown < 0)
-            {
-                _dashScheduled = true;
-            }
-        }
-    }
-    public void HadleDashDirection(InputAction.CallbackContext callbackContext)
-    {
-        _dashDirection = callbackContext.ReadValue<Vector2>();
-        if(_dashDirection== Vector2.zero)
-        {
-            bool facingLeft = _spriteRenderer.flipX;
-            _dashDirection = facingLeft ? new Vector2(-1, 0.1f) : new Vector2(1, 0.1f);
-        }
-    }
+
     private void Update()
     {
-        _currentDashCooldown -= Time.deltaTime;
         _jumpCooldown -= Time.deltaTime;
     }
     private void FixedUpdate()
@@ -96,7 +69,7 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
         {
             _yVelocity = 0;
         }
-        else if(!_isDashing)
+        else if(_gravityAcitvated)
         {
             _yVelocity -= _gravity * Time.fixedDeltaTime;
         }
@@ -106,12 +79,9 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
         {
             Jump();
         }
-        if(_currentDashCooldown<= 0 && _dashScheduled)
-        {
-            StartCoroutine(Dash());
-        }
+        _xVelocity = _xInput * _moveSpeed + totalOutsideVelocity.x;
         float clampedYVelocity = Mathf.Clamp(_yVelocity + totalOutsideVelocity.y, -_maxFallSpeed, 100);
-        _rigidBody2D.velocity = new Vector2(_xInput * _moveSpeed + totalOutsideVelocity.x, clampedYVelocity);
+        _rigidBody2D.velocity = new Vector2(_xVelocity, clampedYVelocity);
     }
 
     void Jump()
@@ -135,9 +105,8 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
         _outsideContiniousForce -= force;
     }
 
-    public void ApplyImmediateForce(Vector2 force,bool resetsVelocity)
+    public void ApplyImmediateForce(Vector2 force)
     {
-        if (resetsVelocity) _yVelocity = 0;
         _yVelocity += force.y;
     }
 
@@ -150,23 +119,31 @@ public class PlayerController : MonoBehaviour, IAcceptsOutsideForces
     {
         _followedObjects.Remove(followedRB);
     }
-    public IEnumerator Dash()
+
+    public void ResetVelocity(bool resetX, bool resetY)
     {
-        if (_isDashing) yield break;
-        _dashScheduled = false;
-        _currentDashCooldown = _dashDuration + _dashCooldown;
-        Vector2 movementVector = _dashDirection.normalized;
-        if ((movementVector.y > 0 && _yVelocity < 0) || (movementVector.y < 0 && _yVelocity > 0))
-        {
-            _yVelocity = 0;
-        } 
-        _isDashing = true;
-        movementVector *= _dashSpeed;
-        SetContinoiusForce(movementVector);
-        OnDashPerformed?.Invoke(_dashDuration);
-        yield return new WaitForSeconds(_dashDuration);
-        _isDashing = false;
-        UnsetContinoiusForce(movementVector);
+        //TODO _xVelocity is not calculated properly
+        if (resetX) _xVelocity = 0;
+        if (resetY) _yVelocity = 0;
     }
 
+    public Vector2 GetVelocity()
+    {
+        return new Vector2(_xVelocity, _yVelocity);
+    }
+
+    public void ActivateGravity()
+    {
+        _gravityAcitvated = true;
+    }
+
+    public void DeactivateGravity()
+    {
+        _gravityAcitvated = false;
+    }
+
+    public bool IsGravityActive()
+    {
+        return _gravityAcitvated = true;
+    }
 }

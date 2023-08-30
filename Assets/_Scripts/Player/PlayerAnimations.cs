@@ -28,7 +28,7 @@ public class PlayerAnimations : MonoBehaviour
     private void Start()
     {
         PlayerController.OnJumpPerformed += Jump;
-        PlayerController.OnDashPerformed += Dash;
+        PlayerDash.OnDashPerformed += Dash;
     }
     private void Update()
     {
@@ -94,7 +94,7 @@ public class PlayerAnimations : MonoBehaviour
     private void OnDestroy()
     {
         PlayerController.OnJumpPerformed -= Jump;
-        PlayerController.OnDashPerformed -= Dash;
+        PlayerDash.OnDashPerformed -= Dash;
         
     }
 

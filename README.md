@@ -9,4 +9,5 @@ Game mechanics:
 * passive traps
 * moving platform
 * finish flag
-* collectible gems
+* collectible gems <br> <br>
+Graphics by https://www.kenney.nl/assets
